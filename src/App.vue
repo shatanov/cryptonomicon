@@ -50,9 +50,9 @@
             class="bg-white overflow-hidden shadow rounded-lg border-purple-800 border-solid cursor-pointer"
             v-for="item in tickerCard"
             :key="item.cardTitle"
-            @click="cardState = item"
+            @click="selectCard(item)"
             :class="{
-              'border-4': cardState === item,
+              'border-4': cardState === item
             }"
           >
             <div class="px-4 py-5 sm:p-6 text-center">
@@ -91,10 +91,11 @@
           {{ cardState.cardTitle }} - USD
         </h3>
         <div class="flex items-end border-gray-600 border-b border-l h-64">
-          <div class="bg-purple-800 border w-10 h-24"></div>
-          <div class="bg-purple-800 border w-10 h-32"></div>
-          <div class="bg-purple-800 border w-10 h-48"></div>
-          <div class="bg-purple-800 border w-10 h-16"></div>
+          <div 
+          v-for="(bar, idx) in normalizeGraph()" 
+          :key="idx"
+          :style="{height: `${bar}%`}"
+          class="bg-purple-800 border w-10 h-24"></div>
         </div>
         <button
           @click="cardState = null"
@@ -135,7 +136,8 @@ export default {
     return {
       ticker: null,
       tickerCard: [],
-      cardState: null
+      cardState: null,
+      graphState: []
     };
   },
   methods: {
@@ -150,17 +152,33 @@ export default {
           `https://min-api.cryptocompare.com/data/price?fsym=${tickers.cardTitle}&tsyms=USD&api_key=9cb9107f4629d0eda02c98db8f3b9ffc7b640005a366d59a9d5cc50c7dc92d50`
         );
         const data = await api.json();
-        console.log(data);
+        this.tickerCard.find(t => t.cardTitle === tickers.cardTitle).cardPrice = 
+        data.USD > 1 ? data.USD.toFixed(2) : data.USD.toPrecision(2);
+        if(this.cardState?.cardTitle === tickers.cardTitle){
+          this.graphState.push(data.USD)
+        }
       }, 3000);
-
       this.tickerCard.push(tickers);
       this.ticker = "";
     },
 
     deleteCard(itemDelete) {
       this.tickerCard = this.tickerCard.filter(t => t != itemDelete);
+    }, 
+
+    selectCard(item) {
+      this.cardState = item;
+      this.graphState = []
     },
-  },
+
+    normalizeGraph() {
+      const maxValue = Math.max(...this.graphState);
+      const minValue = Math.min(...this.graphState);
+      return this.graphState.map(
+        price => 5 + ((price - minValue) * 95) / (maxValue - minValue)
+      );
+    }
+  }
 };
 </script>
 
