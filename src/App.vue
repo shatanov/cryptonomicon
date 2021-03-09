@@ -1,7 +1,14 @@
 <template>
   <div class="container mx-auto flex flex-col items-center bg-gray-100 p-4">
+    <template v-if="apiState">
+      <div class="fixed w-100 h-100 opacity-80 bg-purple-800 inset-0 z-50 flex items-center justify-center">
+      <svg class="animate-spin -ml-1 mr-3 h-12 w-12 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+    </div>
+    </template>
     <div class="container">
-      <div class="w-full my-4"></div>
       <section>
         <div class="flex">
           <div class="max-w-xs">
@@ -19,6 +26,16 @@
                 placeholder="Например DOGE"
               />
             </div>
+            <div 
+            class="flex bg-white shadow-md p-1 rounded-md shadow-md flex-wrap">
+              <span
+              class="inline-flex items-center px-2 m-1 rounded-md text-xs font-medium bg-gray-300 text-gray-800 cursor-pointer"
+              v-for="(hint,idx) in cardHintState"
+              :key="idx">
+                {{hint}}
+              </span>
+            </div>
+            <div class="text-sm text-red-600" v-show="cardReplayState">Такой тикер уже добавлен</div>
           </div>
         </div>
         <button
@@ -91,11 +108,12 @@
           {{ cardState.cardTitle }} - USD
         </h3>
         <div class="flex items-end border-gray-600 border-b border-l h-64">
-          <div 
-          v-for="(bar, idx) in normalizeGraph()" 
-          :key="idx"
-          :style="{height: `${bar}%`}"
-          class="bg-purple-800 border w-10 h-24"></div>
+          <div
+            v-for="(bar, idx) in normalizeGraph()"
+            :key="idx"
+            :style="{ height: `${bar}%` }"
+            class="bg-purple-800 border w-10 h-24 bg-"
+          ></div>
         </div>
         <button
           @click="cardState = null"
@@ -137,9 +155,35 @@ export default {
       ticker: null,
       tickerCard: [],
       cardState: null,
-      graphState: []
+      graphState: [],
+      apiState: true,
+      dataAll: [],
+      cardReplayState: false,
+      hintState: false,
+      cardHintState: []
     };
   },
+
+  watch: {
+    ticker() {
+      this.hintState = true;
+      console.log(typeof this.ticker);
+      console.log(this.dataAll.find(t => t.Symbol.toLowerCase() === this.ticker).FullName)
+    }
+  },
+
+  created() {
+     fetch('https://min-api.cryptocompare.com/data/all/coinlist?summary=true')
+      .then((response) => {
+        return response.json();
+      })
+      .then((data) => {
+        this.dataAll = Object.values(data.Data);
+        this.apiState = false;
+
+      });
+  },
+
   methods: {
     addTicker() {
       const tickers = {
@@ -152,10 +196,10 @@ export default {
           `https://min-api.cryptocompare.com/data/price?fsym=${tickers.cardTitle}&tsyms=USD&api_key=9cb9107f4629d0eda02c98db8f3b9ffc7b640005a366d59a9d5cc50c7dc92d50`
         );
         const data = await api.json();
-        this.tickerCard.find(t => t.cardTitle === tickers.cardTitle).cardPrice = 
-        data.USD > 1 ? data.USD.toFixed(2) : data.USD.toPrecision(2);
-        if(this.cardState?.cardTitle === tickers.cardTitle){
-          this.graphState.push(data.USD)
+        this.tickerCard.find(t => t.cardTitle === tickers.cardTitle).cardPrice =
+          data.USD > 1 ? data.USD.toFixed(2) : data.USD.toPrecision(2);
+        if (this.cardState?.cardTitle === tickers.cardTitle) {
+          this.graphState.push(data.USD);
         }
       }, 3000);
       this.tickerCard.push(tickers);
@@ -164,11 +208,11 @@ export default {
 
     deleteCard(itemDelete) {
       this.tickerCard = this.tickerCard.filter(t => t != itemDelete);
-    }, 
+    },
 
     selectCard(item) {
       this.cardState = item;
-      this.graphState = []
+      this.graphState = [];
     },
 
     normalizeGraph() {
@@ -177,9 +221,12 @@ export default {
       return this.graphState.map(
         price => 5 + ((price - minValue) * 95) / (maxValue - minValue)
       );
+    },
+
+    cardHint() {
+
     }
+
   }
 };
 </script>
-
-<style src="./app.css"></style>
