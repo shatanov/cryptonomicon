@@ -27,12 +27,14 @@
               />
             </div>
             <div 
+            v-show="hintState"
             class="flex bg-white shadow-md p-1 rounded-md shadow-md flex-wrap">
               <span
               class="inline-flex items-center px-2 m-1 rounded-md text-xs font-medium bg-gray-300 text-gray-800 cursor-pointer"
-              v-for="(hint,idx) in cardHintState"
-              :key="idx">
-                {{hint}}
+              v-for="hint in cardHintState"
+              :key="hint.FullName"
+              @click="addTicker(hint)">
+                {{hint.Symbol}}
               </span>
             </div>
             <div class="text-sm text-red-600" v-show="cardReplayState">Такой тикер уже добавлен</div>
@@ -166,9 +168,11 @@ export default {
 
   watch: {
     ticker() {
-      this.hintState = true;
-      console.log(typeof this.ticker);
-      console.log(this.dataAll.find(t => t.Symbol.toLowerCase() === this.ticker).FullName)
+      this.cardHintState = this.dataAll.filter(h => h.Symbol.toLowerCase().indexOf(this.ticker.toLowerCase()) != -1 ||
+      h.FullName.toLowerCase().indexOf(this.ticker.toLowerCase()) != -1);
+      this.cardHintState.splice(4);
+      this.ticker == "" ? (this.hintState = false, this.cardHintState.splice(0)) : this.hintState = true;
+      this.cardHintState == 0 ? this.hintState = false : this.hintState = true;
     }
   },
 
@@ -185,12 +189,11 @@ export default {
   },
 
   methods: {
-    addTicker() {
+    addTicker(hint) {
       const tickers = {
-        cardTitle: this.ticker,
+        cardTitle: hint.Symbol ? hint.Symbol.toUpperCase() : this.ticker.toUpperCase(),
         cardPrice: "-"
       };
-
       setInterval(async () => {
         const api = await fetch(
           `https://min-api.cryptocompare.com/data/price?fsym=${tickers.cardTitle}&tsyms=USD&api_key=9cb9107f4629d0eda02c98db8f3b9ffc7b640005a366d59a9d5cc50c7dc92d50`
@@ -202,7 +205,8 @@ export default {
           this.graphState.push(data.USD);
         }
       }, 3000);
-      this.tickerCard.push(tickers);
+      this.tickerCard.push(tickers)
+      console.log(this.tickerCard);
       this.ticker = "";
     },
 
@@ -222,11 +226,6 @@ export default {
         price => 5 + ((price - minValue) * 95) / (maxValue - minValue)
       );
     },
-
-    cardHint() {
-
-    }
-
   }
 };
 </script>
