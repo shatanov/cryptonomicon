@@ -173,6 +173,7 @@ export default {
       this.cardHintState.splice(4);
       this.ticker == "" ? (this.hintState = false, this.cardHintState.splice(0)) : this.hintState = true;
       this.cardHintState == 0 ? this.hintState = false : this.hintState = true;
+      this.cardReplayState === true ? this.cardReplayState = false : this.cardReplayState = false;
     }
   },
 
@@ -184,7 +185,6 @@ export default {
       .then((data) => {
         this.dataAll = Object.values(data.Data);
         this.apiState = false;
-
       });
   },
 
@@ -194,6 +194,8 @@ export default {
         cardTitle: hint.Symbol ? hint.Symbol.toUpperCase() : this.ticker.toUpperCase(),
         cardPrice: "-"
       };
+
+
       setInterval(async () => {
         const api = await fetch(
           `https://min-api.cryptocompare.com/data/price?fsym=${tickers.cardTitle}&tsyms=USD&api_key=9cb9107f4629d0eda02c98db8f3b9ffc7b640005a366d59a9d5cc50c7dc92d50`
@@ -205,9 +207,14 @@ export default {
           this.graphState.push(data.USD);
         }
       }, 3000);
-      this.tickerCard.push(tickers)
-      console.log(this.tickerCard);
-      this.ticker = "";
+
+      if(this.tickerCard.some(e => e.cardTitle === tickers.cardTitle)){
+        this.cardReplayState = true;
+      } else {
+        this.cardReplayState = false;
+        this.tickerCard.push(tickers);
+        this.ticker = "";
+      }
     },
 
     deleteCard(itemDelete) {
