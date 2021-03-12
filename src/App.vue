@@ -18,6 +18,7 @@
             <div class="mt-1 relative rounded-md shadow-md">
               <input
                 @keyup.enter="addTicker"
+                @input="addHint"
                 v-model="ticker"
                 type="text"
                 name="wallet"
@@ -168,12 +169,7 @@ export default {
 
   watch: {
     ticker() {
-      this.cardHintState = this.dataAll.filter(h => h.Symbol.toLowerCase().indexOf(this.ticker.toLowerCase()) != -1 ||
-      h.FullName.toLowerCase().indexOf(this.ticker.toLowerCase()) != -1);
-      this.cardHintState.splice(4);
-      this.ticker == "" ? (this.hintState = false, this.cardHintState.splice(0)) : this.hintState = true;
-      this.cardHintState == 0 ? this.hintState = false : this.hintState = true;
-      this.cardReplayState === true ? this.cardReplayState = false : this.cardReplayState = false;
+
     }
   },
 
@@ -214,6 +210,8 @@ export default {
         this.cardReplayState = false;
         this.tickerCard.push(tickers);
         this.ticker = "";
+        this.cardHintState.splice(0);
+        this.hintState = false;
       }
     },
 
@@ -233,6 +231,15 @@ export default {
         price => 5 + ((price - minValue) * 95) / (maxValue - minValue)
       );
     },
+
+    addHint(){
+      this.cardHintState = this.dataAll.filter(h => h.Symbol.toLowerCase().indexOf(this.ticker.toLowerCase()) != -1 ||
+      h.FullName.toLowerCase().indexOf(this.ticker.toLowerCase()) != -1);
+      this.cardHintState.splice(4);
+      this.ticker === "" ? (this.hintState = false, this.cardHintState.splice(0)) : this.hintState = true;
+      this.cardHintState == 0 ? this.hintState = false : this.hintState = true;
+      this.cardReplayState === true ? this.cardReplayState = false : this.cardReplayState = false;
+    }
   }
 };
 </script>
