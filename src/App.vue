@@ -2,11 +2,11 @@
   <div class="container mx-auto flex flex-col items-center bg-gray-100 p-4">
     <template v-if="apiState">
       <div class="fixed w-100 h-100 opacity-80 bg-purple-800 inset-0 z-50 flex items-center justify-center">
-      <svg class="animate-spin -ml-1 mr-3 h-12 w-12 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-      </svg>
-    </div>
+        <svg class="animate-spin -ml-1 mr-3 h-12 w-12 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+      </div>
     </template>
     <div class="container">
       <section>
@@ -63,12 +63,12 @@
         </button>
       </section>
 
-      <template v-if="tickerCard.length">
+      <template v-if="tickerCards.length">
         <hr class="w-full border-t border-gray-600 my-4" />
         <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
           <div
             class="bg-white overflow-hidden shadow rounded-lg border-purple-800 border-solid cursor-pointer"
-            v-for="item in tickerCard"
+            v-for="item in tickerCards"
             :key="item.cardTitle"
             @click="selectCard(item)"
             :class="{
@@ -156,7 +156,7 @@ export default {
   data() {
     return {
       ticker: null,
-      tickerCard: [],
+      tickerCards: [],
       cardState: null,
       graphState: [],
       apiState: true,
@@ -167,14 +167,9 @@ export default {
     };
   },
 
-  watch: {
-    ticker() {
-
-    }
-  },
 
   created() {
-     fetch('https://min-api.cryptocompare.com/data/all/coinlist?summary=true')
+    fetch('https://min-api.cryptocompare.com/data/all/coinlist?summary=true')
       .then((response) => {
         return response.json();
       })
@@ -182,41 +177,55 @@ export default {
         this.dataAll = Object.values(data.Data);
         this.apiState = false;
       });
+
+    const tickersData = localStorage.getItem('cryptonomicon-list');
+    if (tickersData) {
+      this.tickerCards = JSON.parse(tickersData);
+      this.tickerCards.forEach(ticker => {
+        this.subscribeToUpdates(ticker.cardTitle);
+      });
+    };
   },
 
   methods: {
+    subscribeToUpdates(tickerName){
+      setInterval(async () => {
+        const api = await fetch(
+          `https://min-api.cryptocompare.com/data/price?fsym=${tickerName}&tsyms=USD&api_key=9cb9107f4629d0eda02c98db8f3b9ffc7b640005a366d59a9d5cc50c7dc92d50`
+        );
+        const data = await api.json();
+        this.tickerCards.find(t => t.cardTitle === tickerName).cardPrice =
+          data.USD > 1 ? data.USD.toFixed(2) : data.USD.toPrecision(2);
+        if (this.cardState?.cardTitle === tickerName) {
+          this.graphState.push(data.USD);
+        }
+      }, 3000);
+    },
+
+
     addTicker(hint) {
       const tickers = {
         cardTitle: hint.Symbol ? hint.Symbol.toUpperCase() : this.ticker.toUpperCase(),
         cardPrice: "-"
-      };
+      }
 
-
-      setInterval(async () => {
-        const api = await fetch(
-          `https://min-api.cryptocompare.com/data/price?fsym=${tickers.cardTitle}&tsyms=USD&api_key=9cb9107f4629d0eda02c98db8f3b9ffc7b640005a366d59a9d5cc50c7dc92d50`
-        );
-        const data = await api.json();
-        this.tickerCard.find(t => t.cardTitle === tickers.cardTitle).cardPrice =
-          data.USD > 1 ? data.USD.toFixed(2) : data.USD.toPrecision(2);
-        if (this.cardState?.cardTitle === tickers.cardTitle) {
-          this.graphState.push(data.USD);
-        }
-      }, 3000);
-
-      if(this.tickerCard.some(e => e.cardTitle === tickers.cardTitle)){
+      if(this.tickerCards.some(e => e.cardTitle === tickers.cardTitle)){
         this.cardReplayState = true;
       } else {
         this.cardReplayState = false;
-        this.tickerCard.push(tickers);
+        this.tickerCards.push(tickers);
         this.ticker = "";
         this.cardHintState.splice(0);
         this.hintState = false;
       }
+
+      localStorage.setItem('cryptonomicon-list', JSON.stringify(this.tickerCards));
+      this.subscribeToUpdates(tickers.cardTitle);
     },
 
     deleteCard(itemDelete) {
-      this.tickerCard = this.tickerCard.filter(t => t != itemDelete);
+      this.tickerCards = this.tickerCards.filter(t => t != itemDelete);
+      localStorage.setItem('cryptonomicon-list', JSON.stringify(this.tickerCards));
     },
 
     selectCard(item) {
