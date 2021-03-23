@@ -65,10 +65,24 @@
 
       <template v-if="tickerCards.length">
         <hr class="w-full border-t border-gray-600 my-4" />
+        <div>
+          <button
+            class="my-4 mr-4 inline-flex items-center py-2 px-4 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-full text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+          >
+            Назад
+          </button>
+          <button
+            class="my-4 inline-flex items-center py-2 px-4 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-full text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+          >
+            Вперед
+          </button>
+          <div>Фильтр: <input v-model="filter" /></div>
+        </div>
+        <hr class="w-full border-t border-gray-600 my-4" />
         <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
           <div
             class="bg-white overflow-hidden shadow rounded-lg border-purple-800 border-solid cursor-pointer"
-            v-for="item in tickerCards"
+            v-for="item in filteredTickers()"
             :key="item.cardTitle"
             @click="selectCard(item)"
             :class="{
@@ -163,7 +177,9 @@ export default {
       dataAll: [],
       cardReplayState: false,
       hintState: false,
-      cardHintState: []
+      cardHintState: [],
+      filter: "",
+      page: 1
     };
   },
 
@@ -203,6 +219,10 @@ export default {
     },
 
 
+    filteredTickers(){
+      return this.tickerCards.filter(t => t.cardTitle.includes(this.filter.toUpperCase()));
+    },
+
     addTicker(hint) {
       const tickers = {
         cardTitle: hint.Symbol ? hint.Symbol.toUpperCase() : this.ticker.toUpperCase(),
@@ -215,6 +235,7 @@ export default {
         this.cardReplayState = false;
         this.tickerCards.push(tickers);
         this.ticker = "";
+        this.filter = "";
         this.cardHintState.splice(0);
         this.hintState = false;
       }
