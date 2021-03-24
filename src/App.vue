@@ -210,6 +210,18 @@ export default {
         this.subscribeToUpdates(ticker.cardTitle);
       });
     };
+
+    const windowData = Object.fromEntries(
+      new URL(window.location).searchParams.entries()
+    );
+    
+    if (windowData.filter) {
+      this.filter = windowData.filter;
+    }
+    if (windowData.page) {
+      this.page = windowData.page;
+    }
+
   },
 
   methods: {
@@ -283,6 +295,25 @@ export default {
       this.ticker === "" ? (this.hintState = false, this.cardHintState.splice(0)) : this.hintState = true;
       this.cardHintState == 0 ? this.hintState = false : this.hintState = true;
       this.cardReplayState === true ? this.cardReplayState = false : this.cardReplayState = false;
+    }
+  }, 
+
+  watch: {
+    filter() {
+      window.history.pushState(
+        null,
+        document.title,
+        `${window.location.pathname}?filter=${this.filter}&page=${this.page}`
+      );
+
+    },
+
+    page() {
+      window.history.pushState(
+        null,
+        document.title,
+        `${window.location.pathname}?filter=${this.filter}&page=${this.page}`
+      );
     }
   }
 };
