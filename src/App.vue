@@ -68,15 +68,23 @@
         <div>
           <button
             class="my-4 mr-4 inline-flex items-center py-2 px-4 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-full text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+            @click="page = page - 1"
+            v-show="page > 1"
           >
             Назад
           </button>
           <button
             class="my-4 inline-flex items-center py-2 px-4 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-full text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+            @click="page = page + 1"
+            v-show="hasNextPage"
           >
             Вперед
           </button>
-          <div>Фильтр: <input v-model="filter" /></div>
+          <div>Фильтр: <input 
+          v-model="filter" 
+          @input="page = 1"
+          />
+          </div>
         </div>
         <hr class="w-full border-t border-gray-600 my-4" />
         <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
@@ -179,7 +187,8 @@ export default {
       hintState: false,
       cardHintState: [],
       filter: "",
-      page: 1
+      page: 1,
+      hasNextPage: true
     };
   },
 
@@ -220,7 +229,12 @@ export default {
 
 
     filteredTickers(){
-      return this.tickerCards.filter(t => t.cardTitle.includes(this.filter.toUpperCase()));
+      const startPage = (this.page - 1) * 6;
+      const endPage = this.page * 6;
+      const filteredTickers = this.tickerCards.filter(t => t.cardTitle.includes(this.filter.toUpperCase()));
+      this.hasNextPage = filteredTickers.length > endPage;
+
+      return filteredTickers.slice(startPage, endPage);
     },
 
     addTicker(hint) {
