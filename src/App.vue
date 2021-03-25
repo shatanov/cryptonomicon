@@ -178,17 +178,20 @@ export default {
   data() {
     return {
       ticker: null,
+      filter: "",
+
       tickerCards: [],
-      cardState: null,
       graphState: [],
-      apiState: true,
       dataAll: [],
+      cardHintState: [],
+
+      cardState: null,
+      apiState: true,
       cardReplayState: false,
       hintState: false,
-      cardHintState: [],
-      filter: "",
+      hasNextPage: true,
+      
       page: 1,
-      hasNextPage: true
     };
   },
 
@@ -219,7 +222,7 @@ export default {
       this.filter = windowData.filter;
     }
     if (windowData.page) {
-      this.page = windowData.page;
+      this.page = +windowData.page;
     }
 
   },
@@ -228,7 +231,7 @@ export default {
     subscribeToUpdates(tickerName){
       setInterval(async () => {
         const api = await fetch(
-          `https://min-api.cryptocompare.com/data/price?fsym=${tickerName}&tsyms=USD&api_key=9cb9107f4629d0eda02c98db8f3b9ffc7b640005a366d59a9d5cc50c7dc92d50`
+          `https://min-api.cryptocompare.com/data/price?fsym=${tickerName}&tsyms=USD&api_key=9++cb9107f4629d0eda02c98db8f3b9ffc7b640005a366d59a9d5cc50c7dc92d50`
         );
         const data = await api.json();
         this.tickerCards.find(t => t.cardTitle === tickerName).cardPrice =
