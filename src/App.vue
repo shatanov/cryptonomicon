@@ -90,9 +90,9 @@
         <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
           <div
             class="bg-white overflow-hidden shadow rounded-lg border-purple-800 border-solid cursor-pointer"
-            v-for="item in filteredTickers()"
+            v-for="item in paginatedTickers"
             :key="item.cardTitle"
-            @click="selectCard(item)"
+            @click="selectedCard(item)"
             :class="{
               'border-4': cardState === item
             }"
@@ -134,7 +134,7 @@
         </h3>
         <div class="flex items-end border-gray-600 border-b border-l h-64">
           <div
-            v-for="(bar, idx) in normalizeGraph()"
+            v-for="(bar, idx) in normalizeGraph"
             :key="idx"
             :style="{ height: `${bar}%` }"
             class="bg-purple-800 border w-10 h-24 bg-"
@@ -189,7 +189,6 @@ export default {
       apiState: true,
       cardReplayState: false,
       hintState: false,
-      hasNextPage: true,
       
       page: 1,
     };
@@ -227,6 +226,46 @@ export default {
 
   },
 
+  computed: {
+    pageStateOptions(){
+      return {
+        filter: this.filter,
+        page:this.page
+      }
+    },
+
+    startPage(){
+      return (this.page - 1) * 6
+    },
+
+    endPage() {
+      return this.page * 6
+    }, 
+
+    filteredTickers(){
+      return this.tickerCards.filter(t => t.cardTitle.includes(this.filter.toUpperCase()));
+    },
+
+    paginatedTickers(){
+      return this.filteredTickers.slice(this.startPage, this.endPage);
+    },
+
+    hasNextPage(){
+      return this.filteredTickers.length > this.endPage
+    },
+
+    normalizeGraph() {
+      const maxValue = Math.max(...this.graphState);
+      const minValue = Math.min(...this.graphState);
+      if(maxValue === minValue){
+        return this.graphState.map(() => 50)
+      }
+      return this.graphState.map(
+        price => 5 + ((price - minValue) * 95) / (maxValue - minValue)
+      );
+    },
+  },
+
   methods: {
     subscribeToUpdates(tickerName){
       setInterval(async () => {
@@ -243,15 +282,6 @@ export default {
     },
 
 
-    filteredTickers(){
-      const startPage = (this.page - 1) * 6;
-      const endPage = this.page * 6;
-      const filteredTickers = this.tickerCards.filter(t => t.cardTitle.includes(this.filter.toUpperCase()));
-      this.hasNextPage = filteredTickers.length > endPage;
-
-      return filteredTickers.slice(startPage, endPage);
-    },
-
     addTicker(hint) {
       const tickers = {
         cardTitle: hint.Symbol ? hint.Symbol.toUpperCase() : this.ticker.toUpperCase(),
@@ -262,33 +292,25 @@ export default {
         this.cardReplayState = true;
       } else {
         this.cardReplayState = false;
-        this.tickerCards.push(tickers);
+        this.tickerCards = [...this.tickerCards, tickers];
         this.ticker = "";
         this.filter = "";
         this.cardHintState.splice(0);
         this.hintState = false;
       }
 
-      localStorage.setItem('cryptonomicon-list', JSON.stringify(this.tickerCards));
       this.subscribeToUpdates(tickers.cardTitle);
     },
 
     deleteCard(itemDelete) {
       this.tickerCards = this.tickerCards.filter(t => t != itemDelete);
-      localStorage.setItem('cryptonomicon-list', JSON.stringify(this.tickerCards));
+      if(this.cardState === itemDelete){
+        this.cardState = null;
+      }
     },
 
-    selectCard(item) {
+    selectedCard(item) {
       this.cardState = item;
-      this.graphState = [];
-    },
-
-    normalizeGraph() {
-      const maxValue = Math.max(...this.graphState);
-      const minValue = Math.min(...this.graphState);
-      return this.graphState.map(
-        price => 5 + ((price - minValue) * 95) / (maxValue - minValue)
-      );
     },
 
     addHint(){
@@ -302,20 +324,25 @@ export default {
   }, 
 
   watch: {
-    filter() {
-      window.history.pushState(
-        null,
-        document.title,
-        `${window.location.pathname}?filter=${this.filter}&page=${this.page}`
-      );
-
+    tickerCards(){
+      localStorage.setItem('cryptonomicon-list', JSON.stringify(this.tickerCards));
     },
 
-    page() {
+    selectedCard(){
+      this.graphState = [];
+    },
+
+    paginatedTickers(){
+      if(this.paginatedTickers.length === 0 && this.page > 1){
+        this.page -= 1;
+      }
+    },
+
+    pageStateOptions(value) {
       window.history.pushState(
         null,
         document.title,
-        `${window.location.pathname}?filter=${this.filter}&page=${this.page}`
+        `${window.location.pathname}?filter=${value.filter}&page=${value.page}`
       );
     }
   }
