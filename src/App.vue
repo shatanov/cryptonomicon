@@ -173,6 +173,8 @@
 </template>
 
 <script>
+import { loadTicker } from './api'
+
 export default {
   name: "App",
   data() {
@@ -217,13 +219,13 @@ export default {
       new URL(window.location).searchParams.entries()
     );
     
-    if (windowData.filter) {
-      this.filter = windowData.filter;
-    }
-    if (windowData.page) {
-      this.page = +windowData.page;
-    }
+    const VALID_KEYS = ['filter', 'page'];
 
+    VALID_KEYS.forEach(key => {
+      if(windowData[key]){
+        this[key] = windowData[key];
+      }
+    })
   },
 
   computed: {
@@ -269,14 +271,12 @@ export default {
   methods: {
     subscribeToUpdates(tickerName){
       setInterval(async () => {
-        const api = await fetch(
-          `https://min-api.cryptocompare.com/data/price?fsym=${tickerName}&tsyms=USD&api_key=9++cb9107f4629d0eda02c98db8f3b9ffc7b640005a366d59a9d5cc50c7dc92d50`
-        );
-        const data = await api.json();
+        const exchangeData = await loadTicker(tickerName);
+
         this.tickerCards.find(t => t.cardTitle === tickerName).cardPrice =
-          data.USD > 1 ? data.USD.toFixed(2) : data.USD.toPrecision(2);
+          exchangeData.USD > 1 ? exchangeData.USD.toFixed(2) : exchangeData.USD.toPrecision(2);
         if (this.cardState?.cardTitle === tickerName) {
-          this.graphState.push(data.USD);
+          this.graphState.push(exchangeData.USD);
         }
       }, 3000);
     },
@@ -328,7 +328,7 @@ export default {
       localStorage.setItem('cryptonomicon-list', JSON.stringify(this.tickerCards));
     },
 
-    selectedCard(){
+    cardState(){
       this.graphState = [];
     },
 
