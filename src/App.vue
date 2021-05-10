@@ -208,19 +208,20 @@ export default {
       });
 
     const tickersData = localStorage.getItem('cryptonomicon-list');
+
     if (tickersData) {
       this.tickerCards = JSON.parse(tickersData);
-      this.tickerCards.forEach(ticker => {
-        this.subscribeToUpdates(ticker.cardTitle);
-      });
     };
+
+
+    setInterval(this.updateTickers, 5000);
 
     const windowData = Object.fromEntries(
       new URL(window.location).searchParams.entries()
     );
     
     const VALID_KEYS = ['filter', 'page'];
-
+// Ошибка при изменение страницы(не сохраняется страница при перезагрузке)
     VALID_KEYS.forEach(key => {
       if(windowData[key]){
         this[key] = windowData[key];
@@ -232,7 +233,7 @@ export default {
     pageStateOptions(){
       return {
         filter: this.filter,
-        page:this.page
+        page: this.page
       }
     },
 
@@ -269,16 +270,22 @@ export default {
   },
 
   methods: {
-    subscribeToUpdates(tickerName){
-      setInterval(async () => {
-        const exchangeData = await loadTicker(tickerName);
-
-        this.tickerCards.find(t => t.cardTitle === tickerName).cardPrice =
-          exchangeData.USD > 1 ? exchangeData.USD.toFixed(2) : exchangeData.USD.toPrecision(2);
-        if (this.cardState?.cardTitle === tickerName) {
-          this.graphState.push(exchangeData.USD);
+    async updateTickers(){
+      if(!this.tickerCards.length){
+        return;
+      }
+      const exchangeData = await loadTicker(this.tickerCards.map(ticker => ticker.cardTitle));
+      this.tickerCards.forEach(ticker => {
+        const price = exchangeData[ticker.cardTitle];
+        if(!price){
+          ticker.price = '-';
+          return;
         }
-      }, 3000);
+        const normalPrice = 1 / price;
+        const formatedPrice = normalPrice > 1 ? normalPrice.toFixed(2) : normalPrice.toPrecision(2);
+
+        ticker.price = formatedPrice;
+      })
     },
 
 
@@ -298,8 +305,6 @@ export default {
         this.cardHintState.splice(0);
         this.hintState = false;
       }
-
-      this.subscribeToUpdates(tickers.cardTitle);
     },
 
     deleteCard(itemDelete) {
