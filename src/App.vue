@@ -278,13 +278,13 @@ export default {
       this.tickerCards.forEach(ticker => {
         const price = exchangeData[ticker.cardTitle];
         if(!price){
-          ticker.price = '-';
+          ticker.cardPrice = '-';
           return;
         }
         const normalPrice = 1 / price;
         const formatedPrice = normalPrice > 1 ? normalPrice.toFixed(2) : normalPrice.toPrecision(2);
 
-        ticker.price = formatedPrice;
+        ticker.cardPrice = formatedPrice;
       })
     },
 
