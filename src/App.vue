@@ -102,7 +102,7 @@
                 {{ item.cardTitle }} - USD
               </dt>
               <dd class="mt-1 text-3xl font-semibold text-gray-900">
-                {{ item.cardPrice }}
+                {{ formatPrice(+item.cardPrice) }}
               </dd>
             </div>
             <div class="w-full border-t border-gray-200"></div>
@@ -173,7 +173,7 @@
 </template>
 
 <script>
-import { loadTicker } from './api'
+import { subscribeToTicker, unsubscribeFromTicker } from './api'
 
 export default {
   name: "App",
@@ -211,10 +211,15 @@ export default {
 
     if (tickersData) {
       this.tickerCards = JSON.parse(tickersData);
+      this.tickerCards.forEach(ticker => {
+        subscribeToTicker(ticker.cardTitle,newPrice => 
+          this.updateTicker(ticker.cardTitle, newPrice)
+        )
+      })
     };
 
 
-    setInterval(this.updateTickers, 5000);
+    // setInterval(this.updateTickers, 5000);
 
     const windowData = Object.fromEntries(
       new URL(window.location).searchParams.entries()
@@ -270,48 +275,45 @@ export default {
   },
 
   methods: {
-    async updateTickers(){
-      if(!this.tickerCards.length){
-        return;
-      }
-      const exchangeData = await loadTicker(this.tickerCards.map(ticker => ticker.cardTitle));
-      this.tickerCards.forEach(ticker => {
-        const price = exchangeData[ticker.cardTitle];
-        if(!price){
-          ticker.cardPrice = '-';
-          return;
-        }
-        const normalPrice = 1 / price;
-        const formatedPrice = normalPrice > 1 ? normalPrice.toFixed(2) : normalPrice.toPrecision(2);
-
-        ticker.cardPrice = formatedPrice;
-      })
+    updateTicker(tickerName, price){
+      this.tickerCards
+      .filter(ticker => ticker.cardTitle === tickerName)
+      .forEach(ticker => {
+        ticker.cardPrice = price;
+      });
     },
 
-
+    formatPrice(price){
+      return price > 1 ? price.toFixed(2) : price.toPrecision(2);
+    },
+    
     addTicker(hint) {
-      const tickers = {
-        cardTitle: hint.Symbol ? hint.Symbol.toUpperCase() : this.ticker.toUpperCase(),
-        cardPrice: "-"
-      }
+        const ticker = {
+          cardTitle: hint.Symbol ? hint.Symbol.toUpperCase() : this.ticker.toUpperCase(),
+          cardPrice: "-"
+        }
 
-      if(this.tickerCards.some(e => e.cardTitle === tickers.cardTitle)){
-        this.cardReplayState = true;
-      } else {
+        if(this.tickerCards.some(e => e.cardTitle === ticker.cardTitle)){
+          this.cardReplayState = true;
+          return;
+        }
         this.cardReplayState = false;
-        this.tickerCards = [...this.tickerCards, tickers];
+        this.tickerCards = [...this.tickerCards, ticker];
         this.ticker = "";
         this.filter = "";
         this.cardHintState.splice(0);
         this.hintState = false;
-      }
+        subscribeToTicker(ticker.cardTitle,newPrice => 
+          this.updateTicker(ticker.cardTitle, newPrice)
+        )
     },
 
     deleteCard(itemDelete) {
       this.tickerCards = this.tickerCards.filter(t => t != itemDelete);
       if(this.cardState === itemDelete){
         this.cardState = null;
-      }
+      };
+      unsubscribeFromTicker(itemDelete.cardTitle)
     },
 
     selectedCard(item) {
