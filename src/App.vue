@@ -1,10 +1,28 @@
 <template>
   <div class="container mx-auto flex flex-col items-center bg-gray-100 p-4">
     <template v-if="apiState">
-      <div class="fixed w-100 h-100 opacity-80 bg-purple-800 inset-0 z-50 flex items-center justify-center">
-        <svg class="animate-spin -ml-1 mr-3 h-12 w-12 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      <div
+        class="fixed w-100 h-100 opacity-80 bg-purple-800 inset-0 z-50 flex items-center justify-center"
+      >
+        <svg
+          class="animate-spin -ml-1 mr-3 h-12 w-12 text-white"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            class="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            stroke-width="4"
+          ></circle>
+          <path
+            class="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+          ></path>
         </svg>
       </div>
     </template>
@@ -27,18 +45,22 @@
                 placeholder="Например DOGE"
               />
             </div>
-            <div 
-            v-show="hintState"
-            class="flex bg-white shadow-md p-1 rounded-md shadow-md flex-wrap">
+            <div
+              v-show="hintState"
+              class="flex bg-white shadow-md p-1 rounded-md shadow-md flex-wrap"
+            >
               <span
-              class="inline-flex items-center px-2 m-1 rounded-md text-xs font-medium bg-gray-300 text-gray-800 cursor-pointer"
-              v-for="hint in cardHintState"
-              :key="hint.FullName"
-              @click="addTicker(hint)">
-                {{hint.Symbol}}
+                class="inline-flex items-center px-2 m-1 rounded-md text-xs font-medium bg-gray-300 text-gray-800 cursor-pointer"
+                v-for="hint in cardHintState"
+                :key="hint.FullName"
+                @click="addTicker(hint)"
+              >
+                {{ hint.Symbol }}
               </span>
             </div>
-            <div class="text-sm text-red-600" v-show="cardReplayState">Такой тикер уже добавлен</div>
+            <div class="text-sm text-red-600" v-show="cardReplayState">
+              Такой тикер уже добавлен
+            </div>
           </div>
         </div>
         <button
@@ -80,11 +102,7 @@
           >
             Вперед
           </button>
-          <div>Фильтр: <input 
-          v-model="filter" 
-          @input="page = 1"
-          />
-          </div>
+          <div>Фильтр: <input v-model="filter" @input="page = 1" /></div>
         </div>
         <hr class="w-full border-t border-gray-600 my-4" />
         <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
@@ -173,7 +191,7 @@
 </template>
 
 <script>
-import { subscribeToTicker, unsubscribeFromTicker } from './api'
+import { subscribeToTicker, unsubscribeFromTicker } from "./api";
 
 export default {
   name: "App",
@@ -191,156 +209,170 @@ export default {
       apiState: true,
       cardReplayState: false,
       hintState: false,
-      
-      page: 1,
+
+      page: 1
     };
   },
 
-
   created() {
-    fetch('https://min-api.cryptocompare.com/data/all/coinlist?summary=true')
-      .then((response) => {
+    fetch("https://min-api.cryptocompare.com/data/all/coinlist?summary=true")
+      .then(response => {
         return response.json();
       })
-      .then((data) => {
+      .then(data => {
         this.dataAll = Object.values(data.Data);
         this.apiState = false;
       });
 
-    const tickersData = localStorage.getItem('cryptonomicon-list');
+    const tickersData = localStorage.getItem("cryptonomicon-list");
 
     if (tickersData) {
       this.tickerCards = JSON.parse(tickersData);
       this.tickerCards.forEach(ticker => {
-        subscribeToTicker(ticker.cardTitle,newPrice => 
+        subscribeToTicker(ticker.cardTitle, (newPrice) =>
           this.updateTicker(ticker.cardTitle, newPrice)
-        )
-      })
-    };
-
+        );
+      });
+    }
 
     // setInterval(this.updateTickers, 5000);
 
     const windowData = Object.fromEntries(
       new URL(window.location).searchParams.entries()
     );
-    
-    const VALID_KEYS = ['filter', 'page'];
-// Ошибка при изменение страницы(не сохраняется страница при перезагрузке)
+
+    const VALID_KEYS = ["filter", "page"];
+    // Ошибка при изменение страницы(не сохраняется страница при перезагрузке)
     VALID_KEYS.forEach(key => {
-      if(windowData[key]){
+      if (windowData[key]) {
         this[key] = windowData[key];
       }
-    })
+    });
   },
 
   computed: {
-    pageStateOptions(){
+    pageStateOptions() {
       return {
         filter: this.filter,
         page: this.page
-      }
+      };
     },
 
-    startPage(){
-      return (this.page - 1) * 6
+    startPage() {
+      return (this.page - 1) * 6;
     },
 
     endPage() {
-      return this.page * 6
-    }, 
-
-    filteredTickers(){
-      return this.tickerCards.filter(t => t.cardTitle.includes(this.filter.toUpperCase()));
+      return this.page * 6;
     },
 
-    paginatedTickers(){
+    filteredTickers() {
+      return this.tickerCards.filter(t =>
+        t.cardTitle.includes(this.filter.toUpperCase())
+      );
+    },
+
+    paginatedTickers() {
       return this.filteredTickers.slice(this.startPage, this.endPage);
     },
 
-    hasNextPage(){
-      return this.filteredTickers.length > this.endPage
+    hasNextPage() {
+      return this.filteredTickers.length > this.endPage;
     },
 
     normalizeGraph() {
       const maxValue = Math.max(...this.graphState);
       const minValue = Math.min(...this.graphState);
-      if(maxValue === minValue){
-        return this.graphState.map(() => 50)
+      if (maxValue === minValue) {
+        return this.graphState.map(() => 50);
       }
       return this.graphState.map(
         price => 5 + ((price - minValue) * 95) / (maxValue - minValue)
       );
-    },
+    }
   },
 
   methods: {
-    updateTicker(tickerName, price){
+    updateTicker(tickerName, price) {
       this.tickerCards
-      .filter(ticker => ticker.cardTitle === tickerName)
-      .forEach(ticker => {
-        ticker.cardPrice = price;
-      });
+        .filter(ticker => ticker.cardTitle === tickerName)
+        .forEach(ticker => {
+          ticker.cardPrice = price;
+        });
     },
 
-    formatPrice(price){
+    formatPrice(price) {
       return price > 1 ? price.toFixed(2) : price.toPrecision(2);
     },
-    
-    addTicker(hint) {
-        const ticker = {
-          cardTitle: hint.Symbol ? hint.Symbol.toUpperCase() : this.ticker.toUpperCase(),
-          cardPrice: "-"
-        }
 
-        if(this.tickerCards.some(e => e.cardTitle === ticker.cardTitle)){
-          this.cardReplayState = true;
-          return;
-        }
-        this.cardReplayState = false;
-        this.tickerCards = [...this.tickerCards, ticker];
-        this.ticker = "";
-        this.filter = "";
-        this.cardHintState.splice(0);
-        this.hintState = false;
-        subscribeToTicker(ticker.cardTitle,newPrice => 
-          this.updateTicker(ticker.cardTitle, newPrice)
-        )
+    addTicker(hint) {
+      const ticker = {
+        cardTitle: hint.Symbol
+          ? hint.Symbol.toUpperCase()
+          : this.ticker.toUpperCase(),
+        cardPrice: "-"
+      };
+
+      if (this.tickerCards.some(e => e.cardTitle === ticker.cardTitle)) {
+        this.cardReplayState = true;
+        return;
+      }
+      this.cardReplayState = false;
+      this.tickerCards = [...this.tickerCards, ticker];
+      this.ticker = "";
+      this.filter = "";
+      this.cardHintState.splice(0);
+      this.hintState = false;
+      subscribeToTicker(ticker.cardTitle, (newPrice) =>
+        this.updateTicker(ticker.cardTitle, newPrice)
+      );
     },
 
     deleteCard(itemDelete) {
       this.tickerCards = this.tickerCards.filter(t => t != itemDelete);
-      if(this.cardState === itemDelete){
+      if (this.cardState === itemDelete) {
         this.cardState = null;
-      };
-      unsubscribeFromTicker(itemDelete.cardTitle)
+      }
+      unsubscribeFromTicker(itemDelete.cardTitle);
     },
 
     selectedCard(item) {
       this.cardState = item;
     },
 
-    addHint(){
-      this.cardHintState = this.dataAll.filter(h => h.Symbol.toLowerCase().indexOf(this.ticker.toLowerCase()) != -1 ||
-      h.FullName.toLowerCase().indexOf(this.ticker.toLowerCase()) != -1);
+    addHint() {
+      this.cardHintState = this.dataAll.filter(
+        h =>
+          h.Symbol.toLowerCase().indexOf(this.ticker.toLowerCase()) != -1 ||
+          h.FullName.toLowerCase().indexOf(this.ticker.toLowerCase()) != -1
+      );
       this.cardHintState.splice(4);
-      this.ticker === "" ? (this.hintState = false, this.cardHintState.splice(0)) : this.hintState = true;
-      this.cardHintState == 0 ? this.hintState = false : this.hintState = true;
-      this.cardReplayState === true ? this.cardReplayState = false : this.cardReplayState = false;
+      this.ticker === ""
+        ? ((this.hintState = false), this.cardHintState.splice(0))
+        : (this.hintState = true);
+      this.cardHintState == 0
+        ? (this.hintState = false)
+        : (this.hintState = true);
+      this.cardReplayState === true
+        ? (this.cardReplayState = false)
+        : (this.cardReplayState = false);
     }
-  }, 
+  },
 
   watch: {
-    tickerCards(){
-      localStorage.setItem('cryptonomicon-list', JSON.stringify(this.tickerCards));
+    tickerCards() {
+      localStorage.setItem(
+        "cryptonomicon-list",
+        JSON.stringify(this.tickerCards)
+      );
     },
 
-    cardState(){
+    cardState() {
       this.graphState = [];
     },
 
-    paginatedTickers(){
-      if(this.paginatedTickers.length === 0 && this.page > 1){
+    paginatedTickers() {
+      if (this.paginatedTickers.length === 0 && this.page > 1) {
         this.page -= 1;
       }
     },
