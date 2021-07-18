@@ -47,7 +47,7 @@ function subscribeToTickerOnWS(ticker) {
 function unsubscribeFromTickerOnWS(ticker) {
   const message = {
     action: "SubRemove",
-    subs: [`5~CCCAGG~${ticker}~USD`]
+    subs: [`5~CCCAGG~${ticker}~USD`],
   };
 
   sendToWebSocket(message);
@@ -61,7 +61,7 @@ export const subscribeToTicker = (ticker, cb) => {
 
 export const unsubscribeFromTicker = (ticker) => {
   tickersHandlers.delete(ticker);
-  unsubscribeFromTickerOnWS(ticker)
+  unsubscribeFromTickerOnWS(ticker);
 };
 
 window.tickersHandlers = tickersHandlers;

@@ -112,7 +112,7 @@
             :key="item.cardTitle"
             @click="selectedCard(item)"
             :class="{
-              'border-4': cardState === item
+              'border-4': cardState === item,
             }"
           >
             <div class="px-4 py-5 sm:p-6 text-center">
@@ -210,16 +210,16 @@ export default {
       cardReplayState: false,
       hintState: false,
 
-      page: 1
+      page: 1,
     };
   },
 
   created() {
     fetch("https://min-api.cryptocompare.com/data/all/coinlist?summary=true")
-      .then(response => {
+      .then((response) => {
         return response.json();
       })
-      .then(data => {
+      .then((data) => {
         this.dataAll = Object.values(data.Data);
         this.apiState = false;
       });
@@ -228,7 +228,7 @@ export default {
 
     if (tickersData) {
       this.tickerCards = JSON.parse(tickersData);
-      this.tickerCards.forEach(ticker => {
+      this.tickerCards.forEach((ticker) => {
         subscribeToTicker(ticker.cardTitle, (newPrice) =>
           this.updateTicker(ticker.cardTitle, newPrice)
         );
@@ -243,7 +243,7 @@ export default {
 
     const VALID_KEYS = ["filter", "page"];
     // Ошибка при изменение страницы(не сохраняется страница при перезагрузке)
-    VALID_KEYS.forEach(key => {
+    VALID_KEYS.forEach((key) => {
       if (windowData[key]) {
         this[key] = windowData[key];
       }
@@ -254,7 +254,7 @@ export default {
     pageStateOptions() {
       return {
         filter: this.filter,
-        page: this.page
+        page: this.page,
       };
     },
 
@@ -267,7 +267,7 @@ export default {
     },
 
     filteredTickers() {
-      return this.tickerCards.filter(t =>
+      return this.tickerCards.filter((t) =>
         t.cardTitle.includes(this.filter.toUpperCase())
       );
     },
@@ -287,16 +287,19 @@ export default {
         return this.graphState.map(() => 50);
       }
       return this.graphState.map(
-        price => 5 + ((price - minValue) * 95) / (maxValue - minValue)
+        (price) => 5 + ((price - minValue) * 95) / (maxValue - minValue)
       );
-    }
+    },
   },
 
   methods: {
     updateTicker(tickerName, price) {
       this.tickerCards
-        .filter(ticker => ticker.cardTitle === tickerName)
+        .filter((ticker) => ticker.cardTitle === tickerName)
         .forEach(ticker => {
+          if (ticker === this.cardState) {
+            this.graphState.push(price);
+          }
           ticker.cardPrice = price;
         });
     },
@@ -310,10 +313,10 @@ export default {
         cardTitle: hint.Symbol
           ? hint.Symbol.toUpperCase()
           : this.ticker.toUpperCase(),
-        cardPrice: "-"
+        cardPrice: "-",
       };
 
-      if (this.tickerCards.some(e => e.cardTitle === ticker.cardTitle)) {
+      if (this.tickerCards.some((e) => e.cardTitle === ticker.cardTitle)) {
         this.cardReplayState = true;
         return;
       }
@@ -329,7 +332,7 @@ export default {
     },
 
     deleteCard(itemDelete) {
-      this.tickerCards = this.tickerCards.filter(t => t != itemDelete);
+      this.tickerCards = this.tickerCards.filter((t) => t != itemDelete);
       if (this.cardState === itemDelete) {
         this.cardState = null;
       }
@@ -342,7 +345,7 @@ export default {
 
     addHint() {
       this.cardHintState = this.dataAll.filter(
-        h =>
+        (h) =>
           h.Symbol.toLowerCase().indexOf(this.ticker.toLowerCase()) != -1 ||
           h.FullName.toLowerCase().indexOf(this.ticker.toLowerCase()) != -1
       );
@@ -356,7 +359,7 @@ export default {
       this.cardReplayState === true
         ? (this.cardReplayState = false)
         : (this.cardReplayState = false);
-    }
+    },
   },
 
   watch: {
@@ -383,7 +386,7 @@ export default {
         document.title,
         `${window.location.pathname}?filter=${value.filter}&page=${value.page}`
       );
-    }
-  }
+    },
+  },
 };
 </script>
