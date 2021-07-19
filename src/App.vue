@@ -120,7 +120,7 @@
                 {{ item.cardTitle }} - USD
               </dt>
               <dd class="mt-1 text-3xl font-semibold text-gray-900">
-                {{ formatPrice(+item.cardPrice) }}
+                {{ formatPrice(item.cardPrice) }}
               </dd>
             </div>
             <div class="w-full border-t border-gray-200"></div>
@@ -296,7 +296,7 @@ export default {
     updateTicker(tickerName, price) {
       this.tickerCards
         .filter((ticker) => ticker.cardTitle === tickerName)
-        .forEach(ticker => {
+        .forEach((ticker) => {
           if (ticker === this.cardState) {
             this.graphState.push(price);
           }
@@ -305,7 +305,11 @@ export default {
     },
 
     formatPrice(price) {
-      return price > 1 ? price.toFixed(2) : price.toPrecision(2);
+      if (typeof(price) === 'number') {
+        return price > 1 ? price.toFixed(2) : price.toPrecision(2);
+      }
+
+      return price;
     },
 
     addTicker(hint) {
