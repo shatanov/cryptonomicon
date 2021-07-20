@@ -4,21 +4,42 @@ const API_KEY =
 const tickersHandlers = new Map();
 
 const AGGREGATE_INDEX = "5";
+const INVALID_SUB = "500";
 
 const socket = new WebSocket(
   `wss://streamer.cryptocompare.com/v2?api_key=${API_KEY}`
 );
 
 socket.addEventListener("message", (e) => {
-  const { TYPE: type, FROMSYMBOL: currency, PRICE: newPrice } = JSON.parse(
-    e.data
-  );
-  if (type != AGGREGATE_INDEX || newPrice === undefined) {
-    return;
+  const {
+    TYPE: type,
+    FROMSYMBOL: currency,
+    PRICE: newPrice,
+    PARAMETER: parameter,
+  } = JSON.parse(e.data);
+
+  if (
+    (type === AGGREGATE_INDEX && newPrice != undefined) ||
+    checkExistenceCoin(type)
+  ) {
+    const handlers = tickersHandlers.get(currency || getCurrencyFromParametr(parameter)) ?? [];
+    handlers.forEach((fn) => fn(newPrice));
   }
-  const handlers = tickersHandlers.get(currency) ?? [];
-  handlers.forEach((fn) => fn(newPrice));
 });
+
+function getCurrencyFromParametr(parameter){
+  const firstOccurrence = parameter?.indexOf("~", 2) + 1;
+  const secondOccurrence = parameter?.lastIndexOf("~");
+  
+  return parameter?.slice(firstOccurrence, secondOccurrence)
+}
+
+
+function checkExistenceCoin(type) {
+  if (type === INVALID_SUB) {
+    return true;
+  }
+}
 
 function sendToWebSocket(message) {
   if (socket.readyState === WebSocket.OPEN) {

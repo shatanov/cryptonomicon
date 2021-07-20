@@ -112,6 +112,7 @@
             :key="item.cardTitle"
             @click="selectedCard(item)"
             :class="{
+              'bg-red-100': !item.tickerExistence,
               'border-4': cardState === item,
             }"
           >
@@ -300,12 +301,14 @@ export default {
           if (ticker === this.cardState) {
             this.graphState.push(price);
           }
-          ticker.cardPrice = price;
+          price === undefined
+            ? (ticker.tickerExistence = false)
+            : (ticker.cardPrice = price);
         });
     },
 
     formatPrice(price) {
-      if (typeof(price) === 'number') {
+      if (typeof price === "number") {
         return price > 1 ? price.toFixed(2) : price.toPrecision(2);
       }
 
@@ -318,6 +321,7 @@ export default {
           ? hint.Symbol.toUpperCase()
           : this.ticker.toUpperCase(),
         cardPrice: "-",
+        tickerExistence: true,
       };
 
       if (this.tickerCards.some((e) => e.cardTitle === ticker.cardTitle)) {
