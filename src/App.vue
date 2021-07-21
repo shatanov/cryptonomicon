@@ -303,7 +303,7 @@ export default {
           }
           price === undefined
             ? (ticker.tickerExistence = false)
-            : (ticker.cardPrice = price);
+            : ((ticker.cardPrice = price), (ticker.tickerExistence = true));
         });
     },
 
