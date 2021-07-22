@@ -23,10 +23,9 @@ socket.addEventListener("message", (e) => {
 
   const currency = fromSymbol || getCurrencyFromParametr(parameter);
 
-  if(toSymbol === "BTC"){
-    const price = newPrice * BTCPrice
-    console.log(currency, price);
-    addTickerPrice(type, price, currency)
+  if (toSymbol === "BTC") {
+    const price = newPrice * BTCPrice;
+    addTickerPrice(type, price, currency);
   }
 
   if (currency === "BTC") {
