@@ -151,7 +151,10 @@
         <h3 class="text-lg leading-6 font-medium text-gray-900 my-8">
           {{ cardState.cardTitle }} - USD
         </h3>
-        <div class="flex items-end border-gray-600 border-b border-l h-64">
+        <div
+          class="flex items-end border-gray-600 border-b border-l h-64"
+          ref="graph"
+        >
           <div
             v-for="(bar, idx) in normalizeGraph"
             :key="idx"
@@ -212,6 +215,7 @@ export default {
       hintState: false,
 
       page: 1,
+      maxGraphElements: 1,
     };
   },
 
@@ -236,8 +240,6 @@ export default {
       });
     }
 
-    // setInterval(this.updateTickers, 5000);
-
     const windowData = Object.fromEntries(
       new URL(window.location).searchParams.entries()
     );
@@ -249,6 +251,14 @@ export default {
         this[key] = windowData[key];
       }
     });
+  },
+
+  mounted() {
+    window.addEventListener("resize", this.calculateMaxGraphElements);
+  },
+
+  beforeUnmount() {
+    window.removeEventListener("resize", this.calculateMaxGraphElements);
   },
 
   computed: {
@@ -300,6 +310,10 @@ export default {
         .forEach((ticker) => {
           if (ticker === this.cardState) {
             this.graphState.push(price);
+            this.calculateMaxGraphElements();
+          }
+          while (this.graphState.length > this.maxGraphElements) {
+            this.graphState.shift();
           }
           price === undefined
             ? (ticker.tickerExistence = false)
@@ -313,6 +327,13 @@ export default {
       }
 
       return price;
+    },
+
+    calculateMaxGraphElements() {
+      if (!this.$refs.graph) {
+        return;
+      }
+      this.maxGraphElements = this.$refs.graph.clientWidth / 38;
     },
 
     addTicker(hint) {
