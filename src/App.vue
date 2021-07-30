@@ -159,7 +159,7 @@
             v-for="(bar, idx) in normalizeGraph"
             ref="graphItem"
             :key="idx"
-            :style="{ height: `${bar}%` }"
+            :style="{ height: `${bar}%`, width: `${this.graphItemWigth}px` }"
             class="bg-purple-800 border w-10 h-24 bg-"
           ></div>
         </div>
@@ -217,6 +217,8 @@ export default {
 
       page: 1,
       maxGraphElements: 1,
+
+      graphItemWigth: 38,
     };
   },
 
@@ -320,7 +322,7 @@ export default {
     },
 
     updateGraph() {
-      this.calculateMaxGraphElements()
+      this.calculateMaxGraphElements();
       if (this.graphState.length > this.maxGraphElements) {
         this.graphState = this.graphState.slice(-this.maxGraphElements);
       }
@@ -338,7 +340,8 @@ export default {
       if (!this.$refs.graph) {
         return;
       }
-      this.maxGraphElements = this.$refs.graph.clientWidth / 38;
+      this.maxGraphElements =
+        this.$refs.graph.clientWidth / this.graphItemWigth;
     },
 
     addTicker(hint) {
