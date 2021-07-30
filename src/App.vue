@@ -157,6 +157,7 @@
         >
           <div
             v-for="(bar, idx) in normalizeGraph"
+            ref="graphItem"
             :key="idx"
             :style="{ height: `${bar}%` }"
             class="bg-purple-800 border w-10 h-24 bg-"
@@ -254,11 +255,11 @@ export default {
   },
 
   mounted() {
-    window.addEventListener("resize", this.calculateMaxGraphElements);
+    window.addEventListener("resize", this.updateGraph);
   },
 
   beforeUnmount() {
-    window.removeEventListener("resize", this.calculateMaxGraphElements);
+    window.removeEventListener("resize", this.updateGraph);
   },
 
   computed: {
@@ -310,15 +311,19 @@ export default {
         .forEach((ticker) => {
           if (ticker === this.cardState) {
             this.graphState.push(price);
-            this.calculateMaxGraphElements();
           }
-          if (this.graphState.length > this.maxGraphElements) {
-            this.graphState = this.graphState.slice(-this.maxGraphElements)
-          }
+          this.updateGraph();
           price === undefined
             ? (ticker.tickerExistence = false)
             : ((ticker.cardPrice = price), (ticker.tickerExistence = true));
         });
+    },
+
+    updateGraph() {
+      this.calculateMaxGraphElements()
+      if (this.graphState.length > this.maxGraphElements) {
+        this.graphState = this.graphState.slice(-this.maxGraphElements);
+      }
     },
 
     formatPrice(price) {
