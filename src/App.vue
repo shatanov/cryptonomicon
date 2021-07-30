@@ -312,8 +312,8 @@ export default {
             this.graphState.push(price);
             this.calculateMaxGraphElements();
           }
-          while (this.graphState.length > this.maxGraphElements) {
-            this.graphState.shift();
+          if (this.graphState.length > this.maxGraphElements) {
+            this.graphState = this.graphState.slice(-this.maxGraphElements)
           }
           price === undefined
             ? (ticker.tickerExistence = false)
