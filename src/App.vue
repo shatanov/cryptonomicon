@@ -157,10 +157,10 @@
         >
           <div
             v-for="(bar, idx) in normalizeGraph"
-            ref="graphItem"
+            ref="graphElement"
             :key="idx"
-            :style="{ height: `${bar}%`, width: `${this.graphItemWigth}px` }"
-            class="bg-purple-800 border w-10 h-24 bg-"
+            :style="{ height: `${bar}%` }"
+            class="bg-purple-800 border h-24 test"
           ></div>
         </div>
         <button
@@ -215,10 +215,9 @@ export default {
       cardReplayState: false,
       hintState: false,
 
+      graphElementWidth: undefined,
       page: 1,
       maxGraphElements: 1,
-
-      graphItemWigth: 38,
     };
   },
 
@@ -337,11 +336,16 @@ export default {
     },
 
     calculateMaxGraphElements() {
-      if (!this.$refs.graph) {
+      if (!this.$refs.graph || !this.$refs.graphElement) {
         return;
       }
+
+      if (!this.graphElementWidth) {
+        this.graphElementWidth = this.$refs.graphElement.clientWidth;
+      }
+
       this.maxGraphElements =
-        this.$refs.graph.clientWidth / this.graphItemWigth;
+        this.$refs.graph.clientWidth / this.graphElementWidth;
     },
 
     addTicker(hint) {
