@@ -256,11 +256,11 @@ export default {
   },
 
   mounted() {
-    window.addEventListener("resize", this.updateGraph);
+    window.addEventListener("resize", this.calculateMaxGraphElements);
   },
 
   beforeUnmount() {
-    window.removeEventListener("resize", this.updateGraph);
+    window.removeEventListener("resize", this.calculateMaxGraphElements);
   },
 
   computed: {
@@ -312,8 +312,8 @@ export default {
         .forEach((ticker) => {
           if (ticker === this.cardState) {
             this.graphState.push(price);
+            this.updateGraph()
           }
-          this.updateGraph();
           price === undefined
             ? (ticker.tickerExistence = false)
             : ((ticker.cardPrice = price), (ticker.tickerExistence = true));
@@ -321,7 +321,6 @@ export default {
     },
 
     updateGraph() {
-      this.calculateMaxGraphElements();
       if (this.graphState.length > this.maxGraphElements) {
         this.graphState = this.graphState.slice(-this.maxGraphElements);
       }
@@ -336,16 +335,16 @@ export default {
     },
 
     calculateMaxGraphElements() {
-      if (!this.$refs.graph || !this.$refs.graphElement) {
+      if (!this.$refs.graph) {
         return;
       }
 
-      if (!this.graphElementWidth) {
-        this.graphElementWidth = this.$refs.graphElement.clientWidth;
-      }
+      // if (!this.graphElementWidth) {
+      //   this.graphElementWidth = this.$refs.graphElement.clientWidth;
+      // }
 
       this.maxGraphElements =
-        this.$refs.graph.clientWidth / this.graphElementWidth;
+        this.$refs.graph.clientWidth / 38
     },
 
     addTicker(hint) {
@@ -413,6 +412,11 @@ export default {
 
     cardState() {
       this.graphState = [];
+      this.$nextTick().then(this.calculateMaxGraphElements);
+    },
+
+    maxGraphElements() {
+      this.updateGraph()
     },
 
     paginatedTickers() {
