@@ -3,7 +3,3 @@
 @tailwind components;
 
 @tailwind utilities;
-
-.test{
-    width: 38px;
-}
