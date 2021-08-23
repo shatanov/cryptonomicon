@@ -27,42 +27,7 @@
       </div>
     </template>
     <div class="container">
-      <div class="flex">
-        <div class="max-w-xs">
-          <label for="wallet" class="block text-sm font-medium text-gray-700"
-            >Тикер</label
-          >
-          <div class="mt-1 relative rounded-md shadow-md">
-            <input
-              @keyup.enter="addTicker"
-              @input="addHint"
-              v-model="ticker"
-              type="text"
-              name="wallet"
-              id="wallet"
-              class="block w-full pr-10 border-gray-300 text-gray-900 focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm rounded-md"
-              placeholder="Например DOGE"
-            />
-          </div>
-          <div
-            v-show="hintState"
-            class="flex bg-white shadow-md p-1 rounded-md shadow-md flex-wrap"
-          >
-            <span
-              class="inline-flex items-center px-2 m-1 rounded-md text-xs font-medium bg-gray-300 text-gray-800 cursor-pointer"
-              v-for="hint in cardHintState"
-              :key="hint.FullName"
-              @click="addTicker(hint)"
-            >
-              {{ hint.Symbol }}
-            </span>
-          </div>
-          <add-button @click="addTicker" />
-          <div class="text-sm text-red-600" v-show="cardReplayState">
-            Такой тикер уже добавлен
-          </div>
-        </div>
-      </div>
+      <add-ticker @add-ticker="addTicker"/>
 
       <template v-if="tickerCards.length">
         <hr class="w-full border-t border-gray-600 my-4" />
@@ -175,18 +140,17 @@
 
 <script>
 import { subscribeToTicker, unsubscribeFromTicker } from "./api";
-import AddButton from "./components/AddButton.vue"
+import AddTicker from "./components/AddTicker.vue"
 
 export default {
   name: "App",
 
   components: {
-    AddButton
+    AddTicker
   },
 
   data() {
     return {
-      ticker: null,
       filter: "",
 
       tickerCards: [],
@@ -327,27 +291,24 @@ export default {
         this.$refs.graph.clientWidth / this.graphElementWidth;
     },
 
-    addTicker(hint) {
-      const ticker = {
-        cardTitle: hint.Symbol
-          ? hint.Symbol.toUpperCase()
-          : this.ticker.toUpperCase(),
+    addTicker(ticker) {
+      const currentTicker = {
+        cardTitle: ticker.toUpperCase(),
         cardPrice: "-",
         tickerExistence: true,
       };
 
-      if (this.tickerCards.some((e) => e.cardTitle === ticker.cardTitle)) {
+      if (this.tickerCards.some((e) => e.cardTitle === currentTicker.cardTitle)) {
         this.cardReplayState = true;
         return;
       }
       this.cardReplayState = false;
-      this.tickerCards = [...this.tickerCards, ticker];
-      this.ticker = "";
+      this.tickerCards = [...this.tickerCards, currentTicker];
       this.filter = "";
       this.cardHintState.splice(0);
       this.hintState = false;
-      subscribeToTicker(ticker.cardTitle, (newPrice) =>
-        this.updateTicker(ticker.cardTitle, newPrice)
+      subscribeToTicker(currentTicker.cardTitle, (newPrice) =>
+        this.updateTicker(currentTicker.cardTitle, newPrice)
       );
     },
 
