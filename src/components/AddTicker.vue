@@ -42,7 +42,7 @@ import AddButton from "./AddButton";
 
 export default {
   components: {
-    AddButton,
+    AddButton
   },
 
   emits: {

@@ -27,7 +27,7 @@
       </div>
     </template>
     <div class="container">
-      <add-ticker @add-ticker="addTicker"/>
+      <add-ticker @add-ticker="addTicker" />
 
       <template v-if="tickerCards.length">
         <hr class="w-full border-t border-gray-600 my-4" />
@@ -140,7 +140,7 @@
 
 <script>
 import { subscribeToTicker, unsubscribeFromTicker } from "./api";
-import AddTicker from "./components/AddTicker.vue"
+import AddTicker from "./components/AddTicker.vue";
 
 export default {
   name: "App",
@@ -165,7 +165,7 @@ export default {
 
       graphElementWidth: 38,
       page: 1,
-      maxGraphElements: 1,
+      maxGraphElements: 1
     };
   },
 
@@ -372,7 +372,7 @@ export default {
         document.title,
         `${window.location.pathname}?filter=${value.filter}&page=${value.page}`
       );
-    },
-  },
+    }
+  }
 };
 </script>
