@@ -109,11 +109,11 @@ export const subscribeToTicker = (ticker, cb) => {
   const subscribers = tickersHandlers.get(ticker) || [];
   tickersHandlers.set(ticker, [...subscribers, cb]);
   subscribeToTickerOnWS(ticker);
-};
+}
 
 export const unsubscribeFromTicker = (ticker) => {
   tickersHandlers.delete(ticker);
   unsubscribeFromTickerOnWS(ticker);
-};
+}
 
 window.tickersHandlers = tickersHandlers;
